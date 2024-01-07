@@ -10,28 +10,38 @@ function App() {
   const events: EventType[] = [
     {
       id: 1,
-      start: "15:00", // The event starts at 03:00 pm
-      duration: 90, // The duration is expressed in minutes
+      start: "8:00",
+      duration: 90,
     },
     {
       id: 2,
-      start: "20:00", // The event starts at 08:00 pm
-      duration: 60, // The duration is expressed in minutes
+      start: "20:00",
+      duration: 60,
     },
     {
       id: 3,
-      start: "20:30", // The event starts at 09:00 pm
-      duration: 30, // The duration is expressed in minutes
+      start: "20:30",
+      duration: 30,
     },
     {
       id: 4,
-      start: "8:30", // The event starts at 09:00 pm
-      duration: 60, // The duration is expressed in minutes
+      start: "8:30",
+      duration: 90,
     },
     {
       id: 5,
-      start: "19:30", // The event starts at 09:00 pm
-      duration: 90, // The duration is expressed in minutes
+      start: "9:00",
+      duration: 90,
+    },
+    {
+      id: 6,
+      start: "20:00",
+      duration: 60,
+    },
+    {
+      id: 7,
+      start: "14:00",
+      duration: 60,
     },
   ];
 
@@ -45,7 +55,8 @@ function App() {
       .filter((event) => {
         const startTime = getTimeInMinutes(event.start);
         const endTime = startTime + event.duration;
-        return endTime <= 780;
+        console.log(startTime, endTime);
+        return endTime <= 1260 && startTime >= 480;
       });
   };
 
@@ -76,6 +87,7 @@ function App() {
       }
 
       i = i + count;
+      count = 0;
 
       groups.push(currentGroup);
     }
@@ -83,16 +95,18 @@ function App() {
   };
 
   const calculatePositions = async (events: EventType[]) => {
-    sortAndCleanEvents(events);
+    const eventsSorted = sortAndCleanEvents(events);
+    console.log(eventsSorted);
     let array: any = [];
-    const e = groupOverlappingEvents(events);
+    const e = groupOverlappingEvents(eventsSorted);
+    console.log(e);
     e.forEach((group) => {
       group.forEach((element, index) => {
         const startTime = getTimeInMinutes(element.start) - 480;
         const top = (startTime / 780) * windowSizes.height;
         const height = (element.duration / 780) * windowSizes.height;
         const left = (windowSizes.width / group.length) * index;
-        const width = windowSizes.width / group.length - 10;
+        const width = windowSizes.width / group.length - 1;
         array.push({
           ...element,
           position: {
@@ -104,7 +118,6 @@ function App() {
         });
       });
     });
-    console.log(array);
     setEventWithPositions(array);
     setShouldUpdatePositions(false);
   };
@@ -115,7 +128,6 @@ function App() {
 
   useLayoutEffect(() => {
     function updateSize() {
-      console.log(windowSizes);
       updateSizesAndCalculatePositions();
     }
     window.addEventListener("resize", updateSize);
@@ -160,7 +172,6 @@ function useWindowSize() {
     updateSize();
     return () => window.removeEventListener("resize", updateSize);
   }, []);
-  console.log(size);
   return size;
 }
 
