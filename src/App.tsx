@@ -1,12 +1,12 @@
 import "./App.css";
-import { useState, useEffect, useLayoutEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import Event from "./components/event";
 import { Event as EventType } from "./types/event";
 
 function App() {
   const windowSizes = useWindowSize();
-  const [eventWithpositions, setEventWithPositions] = useState();
-  const [shouldUpdatePositions, setShouldUpdatePositions] = useState(true);
+  const [eventWithpositions, setEventWithPositions] = useState<any[]>([]);
+  const [_shouldUpdatePositions, setShouldUpdatePositions] = useState(true);
   const events: EventType[] = [
     {
       id: 1,
@@ -55,7 +55,6 @@ function App() {
   };
 
   const groupOverlappingEvents = (events: EventType[]) => {
-    const eventsSorted = sortAndCleanEvents(events);
     let groups = [];
     let count = 0;
 
@@ -84,6 +83,7 @@ function App() {
   };
 
   const calculatePositions = async (events: EventType[]) => {
+    sortAndCleanEvents(events);
     let array: any = [];
     const e = groupOverlappingEvents(events);
     e.forEach((group) => {
@@ -133,7 +133,7 @@ function App() {
     >
       <div style={{ position: "absolute", top: 0 }}>8h</div>
       {eventWithpositions
-        ? eventWithpositions.map((event) => (
+        ? eventWithpositions.map((event: any) => (
             <Event
               key={event.id}
               event={event}
