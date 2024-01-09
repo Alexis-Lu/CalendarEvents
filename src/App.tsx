@@ -82,7 +82,6 @@ function App() {
           break;
         }
       }
-      console.log(groups);
       groups.push(currentGroup);
     }
 
@@ -106,7 +105,6 @@ function App() {
     const e = groupOverlappingEvents(eventsSorted);
 
     let count = 1;
-    console.log(e);
     e.forEach((group, key) => {
       group.forEach((element, index) => {
         if (
@@ -150,7 +148,6 @@ function App() {
         }
       });
     });
-    console.log(array);
     setEventWithPositions(array);
     setShouldUpdatePositions(false);
   };
