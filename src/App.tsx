@@ -26,11 +26,11 @@ function App() {
     {
       id: 4,
       start: "8:30",
-      duration: 90,
+      duration: 180,
     },
     {
       id: 5,
-      start: "9:00",
+      start: "10:30",
       duration: 90,
     },
     {
@@ -55,7 +55,6 @@ function App() {
       .filter((event) => {
         const startTime = getTimeInMinutes(event.start);
         const endTime = startTime + event.duration;
-        console.log(startTime, endTime);
         return endTime <= 1260 && startTime >= 480;
       });
   };
@@ -67,68 +66,98 @@ function App() {
 
   const groupOverlappingEvents = (events: EventType[]) => {
     let groups = [];
-    let count = 0;
 
     for (let i = 0; i < events.length; i++) {
-      let currentGroup = [events[i]];
+      let currentEvent = events[i];
+      let currentGroup = [currentEvent];
 
-      for (let j = 1; i + j < events.length; j++) {
+      for (let j = i + 1; j < events.length; j++) {
         const endTimeCurrent =
-          getTimeInMinutes(currentGroup[currentGroup.length - 1].start) +
-          currentGroup[currentGroup.length - 1].duration;
-        const startTimeNext = getTimeInMinutes(events[i + j].start);
+          getTimeInMinutes(currentEvent.start) + currentEvent.duration;
+        const startTimeNext = getTimeInMinutes(events[j].start);
 
         if (endTimeCurrent > startTimeNext) {
-          count = count + 1;
-          currentGroup.push(events[i + j]);
+          currentGroup.push(events[j]);
         } else {
           break;
         }
       }
-
-      i = i + count;
-      count = 0;
-
+      console.log(groups);
       groups.push(currentGroup);
+    }
+
+    for (let i = 0; i < groups.length - 1; i++) {
+      const currentGroup = groups[i];
+      const nextGroup = groups[i + 1];
+      const allInCurrentGroup = nextGroup.every((event) =>
+        currentGroup.some((currentEvent) => currentEvent.id === event.id)
+      );
+      if (allInCurrentGroup) {
+        groups.splice(i + 1, 1);
+        i--;
+      }
     }
     return groups;
   };
 
   const calculatePositions = async (events: EventType[]) => {
     const eventsSorted = sortAndCleanEvents(events);
-    console.log(eventsSorted);
     let array: any = [];
     const e = groupOverlappingEvents(eventsSorted);
+
+    let count = 1;
     console.log(e);
-    e.forEach((group) => {
+    e.forEach((group, key) => {
       group.forEach((element, index) => {
-        const startTime = getTimeInMinutes(element.start) - 480;
-        const top = (startTime / 780) * windowSizes.height;
-        const height = (element.duration / 780) * windowSizes.height;
-        const left = (windowSizes.width / group.length) * index;
-        const width = windowSizes.width / group.length - 1;
-        array.push({
-          ...element,
-          position: {
-            top,
-            height,
-            left,
-            width,
-          },
-        });
+        if (
+          e[key - 1]?.length > 0 &&
+          element.id === e[key - 1][e[key - 1].length - 1].id
+        ) {
+          count = count + 1;
+        } else {
+          if (count > 1) {
+            const startTime = getTimeInMinutes(element.start);
+            const height = (element.duration / 780) * windowSizes.height;
+            const width = windowSizes.width / e[key - 1].length;
+            const top = ((startTime - 480) * windowSizes.height) / 780;
+            const left = width * (count - 2);
+            array.push({
+              ...element,
+              position: {
+                top,
+                left,
+                height,
+                width,
+              },
+            });
+            count = 1;
+          } else {
+            const startTime = getTimeInMinutes(element.start);
+            const height = (element.duration / 780) * windowSizes.height;
+            const width = windowSizes.width / group.length;
+            const top = ((startTime - 480) * windowSizes.height) / 780;
+            const left = width * index;
+            array.push({
+              ...element,
+              position: {
+                top,
+                left,
+                height,
+                width,
+              },
+            });
+          }
+        }
       });
     });
+    console.log(array);
     setEventWithPositions(array);
     setShouldUpdatePositions(false);
   };
 
-  const updateSizesAndCalculatePositions = () => {
-    calculatePositions(events);
-  };
-
   useLayoutEffect(() => {
     function updateSize() {
-      updateSizesAndCalculatePositions();
+      calculatePositions(events);
     }
     window.addEventListener("resize", updateSize);
     updateSize();
@@ -143,7 +172,6 @@ function App() {
         position: "relative",
       }}
     >
-      <div style={{ position: "absolute", top: 0 }}>8h</div>
       {eventWithpositions
         ? eventWithpositions.map((event: any) => (
             <Event
@@ -154,7 +182,6 @@ function App() {
             />
           ))
         : "pas de données"}
-      <div style={{ position: "absolute", bottom: 0 }}>21h</div>
     </div>
   );
 }
