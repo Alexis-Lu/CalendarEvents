@@ -17,13 +17,16 @@ export default function Event({
       style={{
         position: "absolute",
         top: `${position.top}px`,
-        left: `${position.left}px`,
+        left: `${position.left + 5}px`,
         height: `${position.height}px`,
-        width: `${position.width}px`,
-        border: "1px solid black",
+        width: `${position.width - 10}px`,
+        border: "1px dashed black",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
-      {event.id}
+      {`${event.start} (${event.duration} min)`}
     </div>
   );
 }
